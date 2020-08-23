@@ -1,12 +1,19 @@
 package org.example;
 
-public class Message {
+
+public abstract class Message {
 
     private String fromId;
 
-    private String targetId;
+    public Message(String fromId) {
+        if(fromId == null){
+            throw new NullPointerException();
+        }
+        this.fromId = fromId;
+    }
 
-    private String content;
+    public String getFromId() {
+        return fromId;
+    }
 
-    private int type;
 }

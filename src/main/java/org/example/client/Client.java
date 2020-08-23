@@ -10,6 +10,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
+import org.example.client.handler.Reciver;
+import org.example.client.handler.StringCodec;
 import org.example.client.handler.TerminalHandler;
 
 /**
@@ -28,6 +32,10 @@ public class Client {
             b.handler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
+                    ch.pipeline().addLast(new IdleStateHandler(600,5,0));
+                    ch.pipeline().addLast(new LineBasedFrameDecoder(4096));
+                    ch.pipeline().addLast(new StringCodec());
+                    ch.pipeline().addLast(new Reciver());
                     ch.pipeline().addLast(new TerminalHandler());
                 }
             });
@@ -40,5 +48,7 @@ public class Client {
         } finally {
             workerGroup.shutdownGracefully();
         }
+
+
     }
 }
