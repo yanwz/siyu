@@ -6,8 +6,8 @@ package org.example.client.handler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
-import org.example.UserMessage;
 import org.example.client.OperateEnum;
+import org.example.domain.MessageProto;
 
 import java.util.Scanner;
 import java.util.UUID;
@@ -46,11 +46,12 @@ public class TerminalHandler extends ChannelInboundHandlerAdapter {
                                 System.out.println("无效的命令语句：" + var);
                                 break;
                             }
-                            UserMessage userMessage = new UserMessage();
-                            userMessage.setId(UUID.randomUUID().toString().replace("-",""));
-                            userMessage.setUserId(aLine[1]);
-                            userMessage.setContent(aLine[2]);
-                            ctx.writeAndFlush(userMessage.toString());
+                            MessageProto.Message.Builder builder = MessageProto.Message.newBuilder();
+                            builder.setType(MessageProto.Message.TypeEnum.MSG);
+                            builder.setId(UUID.randomUUID().toString().replace("-",""));
+                            builder.setUserId(aLine[1]);
+                            builder.setContent(aLine[2]);
+                            ctx.writeAndFlush(builder.build());
                             break;
                         case QUIT:
                             ctx.close();
@@ -60,7 +61,8 @@ public class TerminalHandler extends ChannelInboundHandlerAdapter {
                     }
                 }
             } catch (Exception e) {
-                exceptionCaught(ctx, e);
+                log.error("",e);
+                ctx.close();
             } finally {
                 scanner.close();
             }
@@ -72,12 +74,5 @@ public class TerminalHandler extends ChannelInboundHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         super.handlerRemoved(ctx);
     }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
-    }
-
 
 }

@@ -10,11 +10,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
+import io.netty.handler.codec.protobuf.ProtobufEncoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
+import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.example.client.handler.Reciver;
-import org.example.client.handler.StringCodec;
+import org.example.client.handler.ExceptionHandler;
+import org.example.client.handler.HeartbeatHandler;
+import org.example.client.handler.MessageHandler;
 import org.example.client.handler.TerminalHandler;
+import org.example.domain.MessageProto;
 
 /**
  * @author 严文泽
@@ -33,10 +38,14 @@ public class Client {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
                     ch.pipeline().addLast(new IdleStateHandler(600,5,0));
-                    ch.pipeline().addLast(new LineBasedFrameDecoder(4096));
-                    ch.pipeline().addLast(new StringCodec());
-                    ch.pipeline().addLast(new Reciver());
+                    ch.pipeline().addLast(new ProtobufVarint32FrameDecoder());
+                    ch.pipeline().addLast(new ProtobufDecoder(MessageProto.Message.getDefaultInstance()));
+                    ch.pipeline().addLast(new ProtobufVarint32LengthFieldPrepender());
+                    ch.pipeline().addLast(new ProtobufEncoder());
+                    ch.pipeline().addLast(new HeartbeatHandler());
+                    ch.pipeline().addLast(new MessageHandler());
                     ch.pipeline().addLast(new TerminalHandler());
+                    ch.pipeline().addLast(new ExceptionHandler());
                 }
             });
 
